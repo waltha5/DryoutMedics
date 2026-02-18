@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0f1a;
+    --bg: #0f0f1a
     --card: #1a1a2e;
     --card-hover: #22223a;
     --gold: #ffd700;
@@ -256,11 +256,6 @@
   }
   .login-error { color: var(--accent1); font-size: 0.8rem; margin-top: 8px; display: none; }
 
-  .config-note {
-    text-align: center; font-size: 0.82rem; color: var(--text-dim);
-    margin-bottom: 10px; background: rgba(107,181,255,0.08);
-    border: 1px solid rgba(107,181,255,0.15); border-radius: 10px; padding: 10px 16px; line-height: 1.5;
-  }
 </style>
 </head>
 <body>
@@ -341,9 +336,6 @@
     <span id="errorMsg">Unable to fetch data. Make sure the sheet is shared publicly (view access).</span>
   </div>
 
-  <div class="config-note" id="configNote" style="display:none;">
-    <strong>Setup needed:</strong> In your Google Sheet, go to the <strong>Share</strong> button (top right) &rarr; set "General access" to <strong>"Anyone with the link"</strong> as Viewer. This allows the dashboard to pull live data.
-  </div>
 
   <div class="controls">
     <label for="monthSelect">Month:</label>
@@ -913,13 +905,11 @@ async function init(skipLoading) {
 
 async function loadMonth(gid, useFallback) {
   const eb = document.getElementById('errorBanner');
-  const cn = document.getElementById('configNote');
-  eb.classList.remove('show'); cn.style.display = 'none';
+  eb.classList.remove('show');
 
   try {
     if (useFallback && FALLBACK_DATA[gid]) {
       currentData = FALLBACK_DATA[gid];
-      cn.style.display = 'block';
       setLiveStatus(false);
     } else {
       const raw = await fetchTabData(gid);
@@ -952,7 +942,6 @@ async function refreshData() {
     const data = parseSheetData(raw);
     if (data.bdrTeam.length > 0 || data.pmTeam.length > 0) {
       currentData = data;
-      document.getElementById('configNote').style.display = 'none';
       setLiveStatus(true);
     }
     renderSummary(currentData.bdrTeam, currentData.pmTeam);
