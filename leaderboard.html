@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dry Out Medics — Sales Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --card-hover: #22223a;
+    --gold: #ffd700;
+    --silver: #c0c0c0;
+    --bronze: #cd7f32;
+    --accent1: #ff6b6b;
+    --accent2: #6bffb8;
+    --accent3: #6bb5ff;
+    --accent4: #ff6bef;
+    --gradient1: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    --gradient2: linear-gradient(135deg, #6bffb8, #00d4aa);
+    --gradient3: linear-gradient(135deg, #6bb5ff, #536dfe);
+    --gradient4: linear-gradient(135deg, #ff6bef, #d63384);
+    --text: #f0f0f0;
+    --text-dim: #8888aa;
+    --border: #2a2a44;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(107,181,255,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,107,107,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(107,255,184,0.06) 0%, transparent 50%);
+    animation: bgShift 20s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+  @keyframes bgShift {
+    0%,100% { transform: translate(0,0); }
+    33% { transform: translate(-2%,1%); }
+    66% { transform: translate(2%,-1%); }
+  }
+  .container { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; padding: 30px 24px 60px; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 {
+    font-size: 2.4rem; font-weight: 900; letter-spacing: -1px;
+    background: linear-gradient(135deg, #ff6b6b, #ffd700, #6bffb8, #6bb5ff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: gradientText 6s ease infinite;
+  }
+  @keyframes gradientText { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .header .subtitle { color: var(--text-dim); font-size: 0.95rem; margin-top: 6px; }
+  .header .live-badge {
+    display: inline-block; margin-top: 8px; font-size: 0.72rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;
+    background: rgba(107,255,184,0.12); color: var(--accent2); border: 1px solid rgba(107,255,184,0.25);
+  }
+  .header .live-badge.offline { background: rgba(255,107,107,0.12); color: var(--accent1); border-color: rgba(255,107,107,0.25); }
+  .header .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); margin-right: 4px; animation: pulse 2s infinite; }
+  .header .live-badge.offline .live-dot { background: var(--accent1); animation: none; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* Controls */
+  .controls { display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 32px; flex-wrap: wrap; }
+  .controls label { font-weight: 600; font-size: 0.95rem; color: var(--text-dim); }
+  .controls select {
+    background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 18px; font-size: 1rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    transition: border-color 0.2s; min-width: 260px;
+  }
+  .controls select:focus { outline: none; border-color: var(--accent3); }
+  .ctrl-btn {
+    background: var(--gradient3); border: none; color: #fff; padding: 10px 22px; border-radius: 10px;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .ctrl-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(107,181,255,0.3); }
+  .ctrl-btn:active { transform: scale(0.97); }
+  .ctrl-btn.spinning svg { animation: spin 0.8s linear infinite; }
+  .ctrl-btn.admin-btn { background: var(--gradient4); }
+  .ctrl-btn.admin-btn:hover { box-shadow: 0 6px 20px rgba(255,107,239,0.3); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Summary */
+  .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px; }
+  .summary-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; text-align: center; transition: transform 0.2s;
+  }
+  .summary-card:hover { transform: translateY(-3px); }
+  .summary-card .value { font-size: 2rem; font-weight: 900; }
+  .summary-card .label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Teams */
+  .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 24px; }
+  @media (max-width: 900px) { .teams-grid { grid-template-columns: 1fr; } }
+  .team-panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 24px; position: relative; overflow: hidden;
+  }
+  .team-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .team-panel.bdr::before { background: var(--gradient1); }
+  .team-panel.pm::before { background: var(--gradient2); }
+  .team-panel .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .panel-header h2 { font-size: 1.2rem; font-weight: 800; }
+  .panel-header .ranking-note { font-size: 0.72rem; color: var(--text-dim); font-style: italic; }
+
+  /* Leaderboard rows */
+  .leader-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .leader-row {
+    display: flex; align-items: center; gap: 14px; padding: 12px 14px;
+    border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid transparent;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .leader-row:hover { background: rgba(255,255,255,0.05); border-color: var(--border); }
+  .leader-row.rank-1 { border-color: rgba(255,215,0,0.25); background: rgba(255,215,0,0.06); }
+  .leader-row.rank-2 { border-color: rgba(192,192,192,0.2); background: rgba(192,192,192,0.04); }
+  .leader-row.rank-3 { border-color: rgba(205,127,50,0.2); background: rgba(205,127,50,0.04); }
+  .rank-num { min-width: 30px; font-size: 1.1rem; font-weight: 900; text-align: center; color: var(--text-dim); }
+  .rank-1 .rank-num { color: var(--gold); }
+  .rank-2 .rank-num { color: var(--silver); }
+  .rank-3 .rank-num { color: var(--bronze); }
+  .trophy { font-size: 1.2rem; }
+
+  /* Avatar */
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 800; font-size: 0.85rem; color: #fff;
+    flex-shrink: 0; position: relative; transition: transform 0.15s;
+    background-size: cover; background-position: center;
+  }
+  .avatar.admin-mode { cursor: pointer; }
+  .avatar.admin-mode:hover { transform: scale(1.1); }
+  .avatar .upload-hint {
+    display: none; position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  .avatar.admin-mode:hover .upload-hint { display: flex; }
+
+  .leader-info { flex: 1; min-width: 0; }
+  .leader-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .leader-sub { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+  .leader-stat { text-align: right; flex-shrink: 0; }
+  .leader-stat .big { font-size: 1.3rem; font-weight: 900; }
+  .leader-stat .unit { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .leader-row .bar-fill {
+    position: absolute; top: 0; left: 0; bottom: 0; border-radius: 12px;
+    opacity: 0.08; transition: width 0.6s ease; z-index: 0;
+  }
+  .bdr .leader-row .bar-fill { background: var(--accent1); }
+  .pm .leader-row .bar-fill { background: var(--accent2); }
+  .leader-row > * { position: relative; z-index: 1; }
+
+  /* Loading */
+  .loading-overlay {
+    position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.4s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loader { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--accent3); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-overlay p { margin-top: 16px; color: var(--text-dim); }
+
+  /* Error / info */
+  .error-banner {
+    background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.3);
+    border-radius: 12px; padding: 16px 22px; margin-bottom: 24px; display: none;
+    align-items: center; gap: 10px; font-size: 0.9rem;
+  }
+  .error-banner.show { display: flex; }
+  .no-data { text-align: center; padding: 40px; color: var(--text-dim); font-style: italic; }
+  .photo-input { display: none; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-in { animation: fadeInUp 0.4s ease both; }
+
+  .footer { text-align: center; margin-top: 40px; color: var(--text-dim); font-size: 0.78rem; }
+
+  /* ── Admin Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000;
+    display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 32px; max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto;
+    position: relative;
+  }
+  .modal h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px; background: none; border: none;
+    color: var(--text-dim); font-size: 1.3rem; cursor: pointer;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .admin-section { margin-bottom: 24px; }
+  .admin-section h3 { font-size: 0.9rem; font-weight: 700; color: var(--accent3); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .admin-field { margin-bottom: 14px; }
+  .admin-field label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 6px; }
+  .admin-field input, .admin-field select {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; font-family: inherit; font-size: 0.9rem;
+  }
+  .admin-field input:focus, .admin-field select:focus { outline: none; border-color: var(--accent3); }
+  .admin-save {
+    background: var(--gradient2); border: none; color: #0f0f1a; padding: 12px 28px;
+    border-radius: 10px; font-size: 0.9rem; font-weight: 800; cursor: pointer;
+    width: 100%; transition: transform 0.15s;
+  }
+  .admin-save:hover { transform: translateY(-1px); }
+
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+  .photo-item { text-align: center; }
+  .photo-item .mini-avatar {
+    width: 56px; height: 56px; border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;
+    color: #fff; cursor: pointer; transition: transform 0.15s; background-size: cover; background-position: center;
+    border: 2px solid transparent;
+  }
+  .photo-item .mini-avatar:hover { transform: scale(1.1); border-color: var(--accent3); }
+  .photo-item .photo-name { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .photo-item .remove-photo {
+    font-size: 0.65rem; color: var(--accent1); cursor: pointer; margin-top: 2px;
+    background: none; border: none; font-family: inherit;
+  }
+  .photo-item .remove-photo:hover { text-decoration: underline; }
+
+  /* Auto-refresh indicator */
+  .auto-refresh-indicator {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem;
+    color: var(--text-dim); margin-left: 8px;
+  }
+  .auto-refresh-indicator .countdown { font-weight: 700; color: var(--accent3); }
+
+  /* Login overlay for admin */
+  .login-section { text-align: center; }
+  .login-section p { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 14px; }
+  .login-row { display: flex; gap: 8px; }
+  .login-row input { flex: 1; }
+  .login-row button {
+    background: var(--gradient4); border: none; color: #fff; padding: 10px 20px;
+    border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .login-error { color: var(--accent1); font-size: 0.8rem; margin-top: 8px; display: none; }
+
+  .config-note {
+    text-align: center; font-size: 0.82rem; color: var(--text-dim);
+    margin-bottom: 10px; background: rgba(107,181,255,0.08);
+    border: 1px solid rgba(107,181,255,0.15); border-radius: 10px; padding: 10px 16px; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="loader"></div>
+  <p>Loading leaderboard data...</p>
+</div>
+
+<input type="file" class="photo-input" id="photoInput" accept="image/*">
+
+<!-- Admin Modal -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAdmin()">&times;</button>
+
+    <!-- Login view -->
+    <div id="adminLogin">
+      <h2>Admin Access</h2>
+      <div class="login-section">
+        <p>Enter the admin password to manage the leaderboard.</p>
+        <div class="login-row">
+          <input type="password" id="adminPassInput" placeholder="Password..." onkeydown="if(event.key==='Enter')attemptLogin()">
+          <button onclick="attemptLogin()">Unlock</button>
+        </div>
+        <div class="login-error" id="loginError">Incorrect password. Try again.</div>
+      </div>
+    </div>
+
+    <!-- Admin panel view -->
+    <div id="adminPanel" style="display:none;">
+      <h2>Admin Panel</h2>
+
+      <div class="admin-section">
+        <h3>Dashboard Settings</h3>
+        <div class="admin-field">
+          <label>Auto-Refresh Interval (seconds, 0 = off)</label>
+          <input type="number" id="refreshInterval" min="0" max="3600" value="60">
+        </div>
+        <div class="admin-field">
+          <label>Change Admin Password</label>
+          <input type="password" id="newPassword" placeholder="New password...">
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>Team Photos</h3>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px;">Click any avatar to upload a photo. Click "Remove" to clear.</p>
+        <div class="photo-grid" id="photoGrid"></div>
+      </div>
+
+      <div class="admin-section">
+        <h3>Data Source</h3>
+        <div class="admin-field">
+          <label>Google Sheet ID</label>
+          <input type="text" id="sheetIdInput" value="">
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-dim);margin-top:-8px;">
+          The sheet must be published to web (File &rarr; Share &rarr; Publish to web) and shared with "Anyone with the link" for live data.
+        </p>
+      </div>
+
+      <button class="admin-save" onclick="saveAdminSettings()">Save Settings</button>
+      <button class="admin-save" style="margin-top:8px;background:var(--gradient1);" onclick="logoutAdmin()">Lock Admin</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <h1>DRY OUT MEDICS</h1>
+    <p class="subtitle">Sales Team Leaderboard</p>
+    <div class="live-badge" id="liveBadge"><span class="live-dot"></span> <span id="liveText">CONNECTING...</span></div>
+  </div>
+
+  <div class="error-banner" id="errorBanner">
+    <span>&#9888;&#65039;</span>
+    <span id="errorMsg">Unable to fetch data. Make sure the sheet is shared publicly (view access).</span>
+  </div>
+
+  <div class="config-note" id="configNote" style="display:none;">
+    <strong>Setup needed:</strong> In your Google Sheet, go to the <strong>Share</strong> button (top right) &rarr; set "General access" to <strong>"Anyone with the link"</strong> as Viewer. This allows the dashboard to pull live data.
+  </div>
+
+  <div class="controls">
+    <label for="monthSelect">Month:</label>
+    <select id="monthSelect"></select>
+    <button class="ctrl-btn" id="refreshBtn" onclick="refreshData()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+    <span class="auto-refresh-indicator" id="autoRefreshIndicator" style="display:none;">
+      Next refresh: <span class="countdown" id="countdown">--</span>s
+    </span>
+    <button class="ctrl-btn admin-btn" onclick="openAdmin()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Admin
+    </button>
+  </div>
+
+  <div class="summary-row" id="summaryRow"></div>
+  <div class="teams-grid" id="teamsGrid"></div>
+
+  <div class="footer">
+    Live data from Google Sheets &middot; Photos saved in browser &middot; Auto-refreshes when enabled
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════
+const DEFAULT_SHEET_ID = '1nkgEfjhf7rYPtYPMfNjdd86DXKjW76Lx2YOdbb30zt8';
+const DEFAULT_PASSWORD = 'dryout2026';
+
+let SPREADSHEET_ID = DEFAULT_SHEET_ID;
+let adminPassword = DEFAULT_PASSWORD;
+let isAdminLoggedIn = false;
+let autoRefreshSec = 60;
+let autoRefreshTimer = null;
+let countdownTimer = null;
+let countdownVal = 0;
+let sheetTabs = [];
+let currentData = null;
+let photoStore = {};
+let allPeople = new Set();
+let isLive = false;
+
+const COLORS = [
+  'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+  'linear-gradient(135deg, #6bffb8, #00b894)',
+  'linear-gradient(135deg, #6bb5ff, #0984e3)',
+  'linear-gradient(135deg, #ff6bef, #e056a0)',
+  'linear-gradient(135deg, #ffd700, #fdcb6e)',
+  'linear-gradient(135deg, #a29bfe, #6c5ce7)',
+  'linear-gradient(135deg, #fd79a8, #e84393)',
+  'linear-gradient(135deg, #00cec9, #00b894)',
+  'linear-gradient(135deg, #fab1a0, #e17055)',
+  'linear-gradient(135deg, #81ecec, #00cec9)',
+  'linear-gradient(135deg, #ff9ff3, #f368e0)',
+  'linear-gradient(135deg, #54a0ff, #2e86de)',
+];
+
+// ═══════════════════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════════════════
+function loadSettings() {
+  try {
+    const s = localStorage.getItem('lb_settings');
+    if (s) {
+      const o = JSON.parse(s);
+      if (o.sheetId) SPREADSHEET_ID = o.sheetId;
+      if (o.password) adminPassword = o.password;
+      if (o.refreshInterval !== undefined) autoRefreshSec = o.refreshInterval;
+    }
+    const p = localStorage.getItem('lb_photos');
+    if (p) photoStore = JSON.parse(p);
+  } catch(e) {}
+}
+function saveSettings() {
+  try {
+    localStorage.setItem('lb_settings', JSON.stringify({
+      sheetId: SPREADSHEET_ID,
+      password: adminPassword,
+      refreshInterval: autoRefreshSec,
+    }));
+  } catch(e) {}
+}
+function savePhotos() {
+  try { localStorage.setItem('lb_photos', JSON.stringify(photoStore)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════
+// GOOGLE SHEETS API
+// ═══════════════════════════════════════════════════
+async function fetchSheetTabs() {
+  const htmlUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`;
+  const resp = await fetch(htmlUrl);
+  if (!resp.ok) throw new Error('Cannot access sheet');
+  const html = await resp.text();
+  const tabMatches = [...html.matchAll(/id="sheet-button-(\d+)"[^>]*>([^<]+)/g)];
+  if (tabMatches.length > 0) {
+    return tabMatches.map(m => ({ gid: m[1], name: m[2].trim() }));
+  }
+  return null;
+}
+
+async function fetchTabData(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  let text = await resp.text();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  text = text.substring(start, end + 1);
+  return JSON.parse(text);
+}
+
+function parseSheetData(gvizData) {
+  const rows = gvizData.table.rows;
+  let bdrTeam = [], pmTeam = [];
+  let inBdr = false, bdrHeaderRow = -1, pmHeaderRow = -1;
+
+  for (let i = 0; i < rows.length; i++) {
+    const cells = rows[i].c;
+    if (!cells) continue;
+    const cv = cells.map(c => c ? (c.v != null ? String(c.v) : '') : '');
+    const joined = cv.join('').toLowerCase();
+
+    if (joined.includes('rank') && joined.includes('bdr') && joined.includes('leads')) { bdrHeaderRow = i; inBdr = true; continue; }
+    if (joined.includes('pm') && joined.includes('assessments') && joined.includes('deals')) { pmHeaderRow = i; inBdr = false; continue; }
+    if (joined.includes('bdr team')) { inBdr = true; continue; }
+    if (joined.includes('pm team')) { inBdr = false; continue; }
+    if (joined.includes('total')) { inBdr = false; continue; }
+
+    if (inBdr && bdrHeaderRow >= 0) {
+      const name = cv[2] ? cv[2].trim() : '';
+      if (name && !name.includes('#REF')) {
+        bdrTeam.push({ name, leads: pNum(cells[3]), deals: pNum(cells[4]), closeRate: pPct(cells[5]) });
+        allPeople.add(name);
+      }
+    }
+    if (pmHeaderRow >= 0) {
+      const pmName = cv[6] ? cv[6].trim() : '';
+      if (pmName && pmName.toLowerCase() !== 'total' && pmName.toLowerCase() !== 'pm' && !pmTeam.find(p => p.name === pmName)) {
+        pmTeam.push({ name: pmName, assessments: pNum(cells[7]), deals: pNum(cells[8]), closeRate: pPct(cells[9]) });
+        allPeople.add(pmName);
+      }
+    }
+  }
+  return { bdrTeam, pmTeam };
+}
+
+function pNum(c) { if (!c || c.v == null) return 0; const n = Number(c.v); return isNaN(n) ? 0 : n; }
+function pPct(c) {
+  if (!c || c.v == null) return 0;
+  let v = c.v;
+  if (typeof v === 'string') return parseFloat(v.replace('%','')) || 0;
+  if (typeof v === 'number') return v > 1 ? v : Math.round(v * 100);
+  return 0;
+}
+
+// ═══════════════════════════════════════════════════
+// RANKING
+// ═══════════════════════════════════════════════════
+function rankBDR(team) {
+  return [...team].filter(m => m.deals > 0).sort((a,b) => b.deals - a.deals || b.leads - a.leads);
+}
+function rankPM(team) {
+  const active = team.filter(m => m.assessments > 0 && m.deals > 0);
+  if (!active.length) return [];
+  const totA = active.reduce((s,m) => s + m.assessments, 0);
+  const totD = active.reduce((s,m) => s + m.deals, 0);
+  const prior = totD / totA;
+  const C = totA / active.length;
+  return active.map(m => {
+    const raw = m.deals / m.assessments;
+    const ws = (m.assessments * raw + C * prior) / (m.assessments + C);
+    return { ...m, weightedScore: ws, rawRate: raw };
+  }).sort((a,b) => b.weightedScore - a.weightedScore || b.deals - a.deals);
+}
+
+// ═══════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════
+function getInitials(n) { return n.split(/[\s,]+/).filter(Boolean).map(w => w[0].toUpperCase()).slice(0,2).join(''); }
+function getColor(n) { let h=0; for(let i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h); return COLORS[Math.abs(h)%COLORS.length]; }
+function photoKey(name) { return name.toLowerCase().replace(/\s+/g,'_'); }
+
+function renderSummary(bdr, pm) {
+  const bL=bdr.reduce((s,m)=>s+m.leads,0), bD=bdr.reduce((s,m)=>s+m.deals,0);
+  const pA=pm.reduce((s,m)=>s+m.assessments,0), pD=pm.reduce((s,m)=>s+m.deals,0);
+  const bR=bL>0?Math.round(bD/bL*100):0, pR=pA>0?Math.round(pD/pA*100):0;
+  document.getElementById('summaryRow').innerHTML = `
+    <div class="summary-card animate-in" style="animation-delay:0.05s"><div class="value" style="color:var(--accent1)">${bL}</div><div class="label">BDR Leads</div></div>
+    <div class="summary-card animate-in" style="animation-delay:0.1s"><div class="value" style="color:var(--accent1)">${bD}</div><div class="label">BDR Deals</div></div>
+    <div class="summary-card animate-in" style="animation-delay:0.15s"><div class="value" style="color:var(--accent1)">${bR}%</div><div class="label">BDR Close Rate</div></div>
+    <div class="summary-card animate-in" style="animation-delay:0.2s"><div class="value" style="color:var(--accent2)">${pA}</div><div class="label">PM Assessments</div></div>
+    <div class="summary-card animate-in" style="animation-delay:0.25s"><div class="value" style="color:var(--accent2)">${pD}</div><div class="label">PM Deals</div></div>
+    <div class="summary-card animate-in" style="animation-delay:0.3s"><div class="value" style="color:var(--accent2)">${pR}%</div><div class="label">PM Close Rate</div></div>
+  `;
+}
+
+function renderTeams(bdr, pm) {
+  const rB = rankBDR(bdr), rP = rankPM(pm);
+  const mB = rB.length > 0 ? rB[0].deals : 1;
+  const mP = rP.length > 0 ? rP[0].weightedScore : 1;
+  document.getElementById('teamsGrid').innerHTML = `
+    <div class="team-panel bdr animate-in" style="animation-delay:0.15s">
+      <div class="panel-header"><h2>BDR Team</h2><span class="ranking-note">Ranked by total deals</span></div>
+      <div class="leader-list">${rB.length===0?'<div class="no-data">No deals recorded this month</div>':rB.map((m,i)=>leaderRow(m,i,'bdr',mB)).join('')}</div>
+    </div>
+    <div class="team-panel pm animate-in" style="animation-delay:0.25s">
+      <div class="panel-header"><h2>PM Team</h2><span class="ranking-note">Ranked by weighted close rate</span></div>
+      <div class="leader-list">${rP.length===0?'<div class="no-data">No deals recorded this month</div>':rP.map((m,i)=>leaderRow(m,i,'pm',mP)).join('')}</div>
+    </div>
+  `;
+}
+
+function leaderRow(m, i, type, maxVal) {
+  const rank = i+1;
+  const rc = rank<=3 ? `rank-${rank}` : '';
+  const trophy = rank===1?'<span class="trophy">&#128081;</span>':rank===2?'<span class="trophy">&#129352;</span>':rank===3?'<span class="trophy">&#129353;</span>':'';
+  const pk = photoKey(m.name);
+  const hasP = photoStore[pk];
+  const aStyle = hasP ? `background-image:url('${photoStore[pk]}');background-size:cover;` : `background:${getColor(m.name)};`;
+  const aC = hasP ? '' : getInitials(m.name);
+  const adminClass = isAdminLoggedIn ? ' admin-mode' : '';
+  const clickHandler = isAdminLoggedIn ? `onclick="triggerPhotoUpload('${pk}')"` : '';
+
+  let barW, statB, statU, sub;
+  if (type==='bdr') {
+    barW = maxVal>0?(m.deals/maxVal)*100:0;
+    statB = m.deals; statU = 'deals';
+    sub = `${m.leads} leads &middot; ${m.closeRate}% close`;
+  } else {
+    barW = maxVal>0?(m.weightedScore/maxVal)*100:0;
+    statB = Math.round(m.weightedScore*100)+'%'; statU = 'weighted';
+    sub = `${m.assessments} assess &middot; ${m.deals} deals &middot; ${m.closeRate}% raw`;
+  }
+  return `
+    <div class="leader-row ${rc}" style="animation-delay:${0.05*i}s">
+      <div class="bar-fill" style="width:${barW}%"></div>
+      <span class="rank-num">${trophy||'#'+rank}</span>
+      <div class="avatar${adminClass}" style="${aStyle}" data-name="${pk}" ${clickHandler}>
+        ${aC}
+        ${isAdminLoggedIn ? '<div class="upload-hint">&#128247;</div>' : ''}
+      </div>
+      <div class="leader-info">
+        <div class="leader-name">${m.name}</div>
+        <div class="leader-sub">${sub}</div>
+      </div>
+      <div class="leader-stat">
+        <div class="big">${statB}</div>
+        <div class="unit">${statU}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// PHOTO UPLOAD (Admin only)
+// ═══════════════════════════════════════════════════
+let currentPhotoTarget = null;
+function triggerPhotoUpload(name) {
+  if (!isAdminLoggedIn) return;
+  currentPhotoTarget = name;
+  document.getElementById('photoInput').click();
+}
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !currentPhotoTarget) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 120; canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w=img.width*scale, h=img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      photoStore[currentPhotoTarget] = canvas.toDataURL('image/jpeg', 0.85);
+      savePhotos();
+      if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+      renderPhotoGrid();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+// ═══════════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════════
+function openAdmin() {
+  document.getElementById('adminModal').classList.add('show');
+  if (isAdminLoggedIn) {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('sheetIdInput').value = SPREADSHEET_ID;
+    document.getElementById('refreshInterval').value = autoRefreshSec;
+    renderPhotoGrid();
+  } else {
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('adminPassInput').value = '';
+    setTimeout(() => document.getElementById('adminPassInput').focus(), 100);
+  }
+}
+function closeAdmin() { document.getElementById('adminModal').classList.remove('show'); }
+function attemptLogin() {
+  const val = document.getElementById('adminPassInput').value;
+  if (val === adminPassword) {
+    isAdminLoggedIn = true;
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('sheetIdInput').value = SPREADSHEET_ID;
+    document.getElementById('refreshInterval').value = autoRefreshSec;
+    renderPhotoGrid();
+    if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+function logoutAdmin() {
+  isAdminLoggedIn = false;
+  closeAdmin();
+  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+}
+function saveAdminSettings() {
+  const newId = document.getElementById('sheetIdInput').value.trim();
+  const newInterval = parseInt(document.getElementById('refreshInterval').value) || 0;
+  const newPass = document.getElementById('newPassword').value;
+
+  if (newId) SPREADSHEET_ID = newId;
+  autoRefreshSec = newInterval;
+  if (newPass) adminPassword = newPass;
+
+  saveSettings();
+  startAutoRefresh();
+  closeAdmin();
+  init(true);
+}
+
+function renderPhotoGrid() {
+  const grid = document.getElementById('photoGrid');
+  const people = [...allPeople].sort();
+  grid.innerHTML = people.map(name => {
+    const pk = photoKey(name);
+    const hasP = photoStore[pk];
+    const style = hasP ? `background-image:url('${photoStore[pk]}');background-size:cover;` : `background:${getColor(name)};`;
+    const content = hasP ? '' : getInitials(name);
+    return `
+      <div class="photo-item">
+        <div class="mini-avatar" style="${style}" onclick="triggerPhotoUpload('${pk}')">${content}</div>
+        <div class="photo-name">${name}</div>
+        ${hasP ? `<button class="remove-photo" onclick="removePhoto('${pk}')">Remove</button>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+function removePhoto(pk) {
+  delete photoStore[pk];
+  savePhotos();
+  renderPhotoGrid();
+  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+}
+
+// ═══════════════════════════════════════════════════
+// AUTO-REFRESH
+// ═══════════════════════════════════════════════════
+function startAutoRefresh() {
+  clearInterval(autoRefreshTimer);
+  clearInterval(countdownTimer);
+  const ind = document.getElementById('autoRefreshIndicator');
+  if (autoRefreshSec <= 0) { ind.style.display = 'none'; return; }
+  ind.style.display = 'inline-flex';
+  countdownVal = autoRefreshSec;
+  document.getElementById('countdown').textContent = countdownVal;
+  countdownTimer = setInterval(() => {
+    countdownVal--;
+    if (countdownVal < 0) countdownVal = autoRefreshSec;
+    document.getElementById('countdown').textContent = countdownVal;
+  }, 1000);
+  autoRefreshTimer = setInterval(() => {
+    countdownVal = autoRefreshSec;
+    refreshData();
+  }, autoRefreshSec * 1000);
+}
+
+// ═══════════════════════════════════════════════════
+// LIVE BADGE
+// ═══════════════════════════════════════════════════
+function setLiveStatus(live) {
+  isLive = live;
+  const badge = document.getElementById('liveBadge');
+  const text = document.getElementById('liveText');
+  if (live) {
+    badge.classList.remove('offline');
+    text.textContent = 'LIVE';
+  } else {
+    badge.classList.add('offline');
+    text.textContent = 'CACHED DATA';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// FALLBACK DATA
+// ═══════════════════════════════════════════════════
+const FALLBACK_TABS = [
+  { gid: '499280765', name: 'February Sales Leaderboard' },
+  { gid: '691858394', name: 'January Sales Leaderboard' },
+  { gid: '1151265052', name: 'December Sales Leaderboard' },
+  { gid: '1344481906', name: 'November Sales Leaderboard' },
+  { gid: '0', name: 'October Sales Leaderboard' },
+];
+
+const FALLBACK_DATA = {
+  '499280765': {
+    bdrTeam: [
+      { name:'Arpi', leads:20, deals:9, closeRate:45 },
+      { name:'Gary', leads:5, deals:3, closeRate:60 },
+      { name:'Ammar', leads:1, deals:1, closeRate:100 },
+      { name:'Sofia', leads:4, deals:2, closeRate:50 },
+      { name:'Shara', leads:1, deals:1, closeRate:100 },
+      { name:'Demetrius', leads:0, deals:0, closeRate:0 },
+      { name:'Jules', leads:3, deals:3, closeRate:100 },
+    ],
+    pmTeam: [
+      { name:'Fernando', assessments:13, deals:5, closeRate:38 },
+      { name:'Trevor', assessments:8, deals:4, closeRate:50 },
+      { name:'Jesus', assessments:8, deals:5, closeRate:63 },
+      { name:'Gary', assessments:13, deals:7, closeRate:54 },
+      { name:'Demetrius', assessments:3, deals:2, closeRate:67 },
+      { name:'David', assessments:6, deals:4, closeRate:67 },
+      { name:'Geronimo', assessments:0, deals:0, closeRate:0 },
+      { name:'Mario', assessments:0, deals:0, closeRate:0 },
+      { name:'Jahan', assessments:0, deals:0, closeRate:0 },
+      { name:'Isaac', assessments:0, deals:0, closeRate:0 },
+    ]
+  },
+  '691858394': {
+    bdrTeam: [
+      { name:'Arpi', leads:17, deals:9, closeRate:53 },
+      { name:'Gary', leads:9, deals:7, closeRate:78 },
+      { name:'Ammar', leads:6, deals:5, closeRate:83 },
+      { name:'Sofia', leads:7, deals:7, closeRate:100 },
+      { name:'Shara', leads:7, deals:4, closeRate:57 },
+      { name:'Demetrius', leads:5, deals:3, closeRate:60 },
+      { name:'Jesus', leads:4, deals:2, closeRate:50 },
+      { name:'Jules', leads:4, deals:3, closeRate:75 },
+    ],
+    pmTeam: [
+      { name:'Fernando', assessments:18, deals:9, closeRate:50 },
+      { name:'Trevor', assessments:19, deals:14, closeRate:74 },
+      { name:'Jesus', assessments:8, deals:6, closeRate:75 },
+      { name:'Gary', assessments:16, deals:12, closeRate:75 },
+      { name:'Demetrius', assessments:18, deals:14, closeRate:78 },
+      { name:'David', assessments:3, deals:2, closeRate:67 },
+      { name:'Jahan', assessments:1, deals:1, closeRate:100 },
+      { name:'Isaac', assessments:4, deals:2, closeRate:50 },
+    ]
+  },
+  '1151265052': {
+    bdrTeam: [
+      { name:'Arpi', leads:29, deals:20, closeRate:69 },
+      { name:'Sofia', leads:10, deals:3, closeRate:30 },
+      { name:'Demetrius', leads:8, deals:5, closeRate:63 },
+      { name:'Jules', leads:5, deals:1, closeRate:20 },
+      { name:'Ammar', leads:2, deals:2, closeRate:100 },
+      { name:'Gary', leads:14, deals:10, closeRate:71 },
+    ],
+    pmTeam: [
+      { name:'Fernando', assessments:15, deals:11, closeRate:73 },
+      { name:'Trevor', assessments:17, deals:10, closeRate:59 },
+      { name:'Jesus', assessments:6, deals:3, closeRate:50 },
+      { name:'Gary', assessments:19, deals:12, closeRate:63 },
+      { name:'Demetrius', assessments:17, deals:9, closeRate:53 },
+      { name:'Mario', assessments:1, deals:1, closeRate:100 },
+      { name:'Jahan', assessments:1, deals:1, closeRate:100 },
+      { name:'Isaac', assessments:8, deals:6, closeRate:75 },
+    ]
+  },
+  '1344481906': {
+    bdrTeam: [
+      { name:'Arpi', leads:36, deals:29, closeRate:81 },
+      { name:'Sofia', leads:6, deals:4, closeRate:67 },
+      { name:'Jules', leads:2, deals:2, closeRate:100 },
+      { name:'Ammar', leads:5, deals:1, closeRate:20 },
+      { name:'Jesus', leads:6, deals:3, closeRate:50 },
+      { name:'Gary', leads:11, deals:11, closeRate:100 },
+    ],
+    pmTeam: [
+      { name:'Fernando', assessments:34, deals:21, closeRate:62 },
+      { name:'Trevor', assessments:15, deals:10, closeRate:67 },
+      { name:'Jesus', assessments:11, deals:9, closeRate:82 },
+      { name:'Gary', assessments:12, deals:11, closeRate:92 },
+      { name:'Demetrius', assessments:13, deals:11, closeRate:85 },
+      { name:'David', assessments:2, deals:1, closeRate:50 },
+      { name:'Mario', assessments:1, deals:1, closeRate:100 },
+    ]
+  },
+  '0': {
+    bdrTeam: [
+      { name:'Arpi', leads:23, deals:14, closeRate:61 },
+      { name:'Sofia', leads:7, deals:3, closeRate:43 },
+      { name:'Demetrius', leads:7, deals:7, closeRate:100 },
+      { name:'Jules', leads:1, deals:1, closeRate:100 },
+      { name:'Ammar', leads:1, deals:1, closeRate:100 },
+      { name:'Gary', leads:4, deals:4, closeRate:100 },
+    ],
+    pmTeam: [
+      { name:'Fernando', assessments:21, deals:11, closeRate:52 },
+      { name:'Trevor', assessments:13, deals:9, closeRate:69 },
+      { name:'Jesus', assessments:10, deals:8, closeRate:80 },
+      { name:'Gary', assessments:12, deals:7, closeRate:58 },
+      { name:'Demetrius', assessments:7, deals:3, closeRate:43 },
+      { name:'Tico', assessments:1, deals:1, closeRate:100 },
+      { name:'David', assessments:1, deals:1, closeRate:100 },
+    ]
+  },
+};
+
+// Populate allPeople from fallback
+Object.values(FALLBACK_DATA).forEach(d => {
+  d.bdrTeam.forEach(m => allPeople.add(m.name));
+  d.pmTeam.forEach(m => allPeople.add(m.name));
+});
+
+// ═══════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════
+async function init(skipLoading) {
+  if (!skipLoading) loadSettings();
+  let useFallback = false;
+
+  try {
+    const tabs = await fetchSheetTabs();
+    if (tabs && tabs.length > 0) {
+      sheetTabs = tabs.filter(t => {
+        const n = t.name.toLowerCase();
+        return n.includes('leaderboard') || n.includes('sales');
+      });
+      if (sheetTabs.length === 0) sheetTabs = tabs;
+      setLiveStatus(true);
+    } else throw new Error('No tabs');
+  } catch(e) {
+    console.log('Using fallback tabs:', e.message);
+    sheetTabs = FALLBACK_TABS;
+    useFallback = true;
+    setLiveStatus(false);
+  }
+
+  const select = document.getElementById('monthSelect');
+  select.innerHTML = '';
+  sheetTabs.forEach(tab => {
+    const opt = document.createElement('option');
+    opt.value = tab.gid;
+    opt.textContent = tab.name.replace(' Sales Leaderboard','').replace(' Leaderboard','');
+    select.appendChild(opt);
+  });
+  select.onchange = () => loadMonth(select.value, useFallback);
+  await loadMonth(sheetTabs[0].gid, useFallback);
+  document.getElementById('loading').classList.add('hidden');
+  startAutoRefresh();
+}
+
+async function loadMonth(gid, useFallback) {
+  const eb = document.getElementById('errorBanner');
+  const cn = document.getElementById('configNote');
+  eb.classList.remove('show'); cn.style.display = 'none';
+
+  try {
+    if (useFallback && FALLBACK_DATA[gid]) {
+      currentData = FALLBACK_DATA[gid];
+      cn.style.display = 'block';
+      setLiveStatus(false);
+    } else {
+      const raw = await fetchTabData(gid);
+      currentData = parseSheetData(raw);
+      if (currentData.bdrTeam.length === 0 && currentData.pmTeam.length === 0 && FALLBACK_DATA[gid]) {
+        currentData = FALLBACK_DATA[gid]; cn.style.display = 'block'; setLiveStatus(false);
+      } else {
+        setLiveStatus(true);
+      }
+    }
+    renderSummary(currentData.bdrTeam, currentData.pmTeam);
+    renderTeams(currentData.bdrTeam, currentData.pmTeam);
+  } catch(e) {
+    console.error('Load error:', e);
+    if (FALLBACK_DATA[gid]) {
+      currentData = FALLBACK_DATA[gid];
+      renderSummary(currentData.bdrTeam, currentData.pmTeam);
+      renderTeams(currentData.bdrTeam, currentData.pmTeam);
+      cn.style.display = 'block'; setLiveStatus(false);
+    } else { eb.classList.add('show'); }
+  }
+}
+
+async function refreshData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  const gid = document.getElementById('monthSelect').value;
+  try {
+    const raw = await fetchTabData(gid);
+    const data = parseSheetData(raw);
+    if (data.bdrTeam.length > 0 || data.pmTeam.length > 0) {
+      currentData = data;
+      document.getElementById('configNote').style.display = 'none';
+      setLiveStatus(true);
+    }
+    renderSummary(currentData.bdrTeam, currentData.pmTeam);
+    renderTeams(currentData.bdrTeam, currentData.pmTeam);
+  } catch(e) { console.log('Refresh failed:', e.message); }
+  setTimeout(() => btn.classList.remove('spinning'), 600);
+}
+
+// Close modal on overlay click
+document.getElementById('adminModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+
+init();
+</script>
+</body>
+</html>
