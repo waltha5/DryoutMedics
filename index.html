@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dry Out Medics — Sales Leaderboard</title>
+<title>Dry Out Medics â Sales Leaderboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -188,7 +188,7 @@
 
   .footer { text-align: center; margin-top: 40px; color: var(--text-dim); font-size: 0.78rem; }
 
-  /* ── Admin Modal ── */
+  /* ââ Admin Modal ââ */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000;
     display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
@@ -231,7 +231,7 @@
     border: 2px solid transparent;
   }
   .photo-item .mini-avatar:hover { transform: scale(1.1); border-color: var(--accent3); }
-  .photo-item .photo-name { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .photo-item .photo-name { font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; white-space: nowraw; overflow: hidden; text-overflow: ellipsis; }
   .photo-item .remove-photo {
     font-size: 0.65rem; color: var(--accent1); cursor: pointer; margin-top: 2px;
     background: none; border: none; font-family: inherit;
@@ -362,9 +362,9 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // CONFIG & STATE
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 const DEFAULT_SHEET_ID = '1nkgEfjhf7rYPtYPMfNjdd86DXKjW76Lx2YOdbb30zt8';
 const DEFAULT_PASSWORD = 'dryout2026';
 
@@ -396,9 +396,9 @@ const COLORS = [
   'linear-gradient(135deg, #54a0ff, #2e86de)',
 ];
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // LOCAL STORAGE
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function loadSettings() {
   try {
     const s = localStorage.getItem('lb_settings');
@@ -425,18 +425,43 @@ function savePhotos() {
   try { localStorage.setItem('lb_photos', JSON.stringify(photoStore)); } catch(e) {}
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // GOOGLE SHEETS API
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function fetchSheetTabs() {
   const htmlUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`;
   const resp = await fetch(htmlUrl);
   if (!resp.ok) throw new Error('Cannot access sheet');
   const html = await resp.text();
-  const tabMatches = [...html.matchAll(/id="sheet-button-(\d+)"[^>]*>([^<]+)/g)];
-  if (tabMatches.length > 0) {
-    return tabMatches.map(m => ({ gid: m[1], name: m[2].trim() }));
+
+  // Try the old Google Sheets format first
+  const oldMatches = [...html.matchAll(/id="sheet-button-(\d+)"[^>]*>([^<]+)/g)];
+  if (oldMatches.length > 0) {
+    return oldMatches.map(m => ({ gid: m[1], name: m[2].trim() }));
   }
+
+  // Try new Google Sheets format: extract tab names from switcherItem elements
+  // and GIDs from gid references in the HTML
+  const nameMatches = [...html.matchAll(/class="switcherItem(?:Active)?"[^>]*>([^<]+)/g)];
+  const gidMatches = [...html.matchAll(/gid[=:]\s*["']?(\d+)/g)];
+  const uniqueGids = [...new Set(gidMatches.map(m => m[1]))];
+
+  if (nameMatches.length > 0 && uniqueGids.length >= nameMatches.length) {
+    // GIDs appear in order matching the tabs
+    return nameMatches.map((m, i) => ({
+      gid: uniqueGids[i] || '0',
+      name: m[1].trim()
+    }));
+  }
+
+  // If we got GIDs but no tab names, still return what we have
+  if (uniqueGids.length > 0) {
+    return uniqueGids.map(gid => ({
+      gid,
+      name: (FALLBACK_TABS.find(t => t.gid === gid) || {}).name || `Sheet (${gid})`
+    }));
+  }
+
   return null;
 }
 
@@ -495,9 +520,9 @@ function pPct(c) {
   return 0;
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // RANKING
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function rankBDR(team) {
   return [...team].filter(m => m.deals > 0).sort((a,b) => b.deals - a.deals || b.leads - a.leads);
 }
@@ -515,9 +540,9 @@ function rankPM(team) {
   }).sort((a,b) => b.weightedScore - a.weightedScore || b.deals - a.deals);
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // RENDERING
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function getInitials(n) { return n.split(/[\s,]+/).filter(Boolean).map(w => w[0].toUpperCase()).slice(0,2).join(''); }
 function getColor(n) { let h=0; for(let i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h); return COLORS[Math.abs(h)%COLORS.length]; }
 function photoKey(name) { return name.toLowerCase().replace(/\s+/g,'_'); }
@@ -593,9 +618,9 @@ function leaderRow(m, i, type, maxVal) {
   `;
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // PHOTO UPLOAD (Admin only)
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 let currentPhotoTarget = null;
 function triggerPhotoUpload(name) {
   if (!isAdminLoggedIn) return;
@@ -626,9 +651,9 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
   e.target.value = '';
 });
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // ADMIN PANEL
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openAdmin() {
   document.getElementById('adminModal').classList.add('show');
   if (isAdminLoggedIn) {
@@ -704,9 +729,9 @@ function removePhoto(pk) {
   if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // AUTO-REFRESH
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function startAutoRefresh() {
   clearInterval(autoRefreshTimer);
   clearInterval(countdownTimer);
@@ -726,9 +751,9 @@ function startAutoRefresh() {
   }, autoRefreshSec * 1000);
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // LIVE BADGE
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 function setLiveStatus(live) {
   isLive = live;
   const badge = document.getElementById('liveBadge');
@@ -742,9 +767,9 @@ function setLiveStatus(live) {
   }
 }
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // FALLBACK DATA
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 const FALLBACK_TABS = [
   { gid: '499280765', name: 'February Sales Leaderboard' },
   { gid: '691858394', name: 'January Sales Leaderboard' },
@@ -756,22 +781,23 @@ const FALLBACK_TABS = [
 const FALLBACK_DATA = {
   '499280765': {
     bdrTeam: [
-      { name:'Arpi', leads:20, deals:9, closeRate:45 },
+      { name:'Arpi', leads:21, deals:10, closeRate:48 },
       { name:'Gary', leads:5, deals:3, closeRate:60 },
       { name:'Ammar', leads:1, deals:1, closeRate:100 },
-      { name:'Sofia', leads:4, deals:2, closeRate:50 },
-      { name:'Shara', leads:1, deals:1, closeRate:100 },
+      { name:'Sofia', leads:4, deals:4, closeRate:50 },
+      { name:'Shara', leads:2, deals:1, closeRate:50 },
       { name:'Demetrius', leads:0, deals:0, closeRate:0 },
+      { name:'JesÃºs', leads:0, deals:0, closeRate:0 },
       { name:'Jules', leads:3, deals:3, closeRate:100 },
     ],
     pmTeam: [
-      { name:'Fernando', assessments:13, deals:5, closeRate:38 },
-      { name:'Trevor', assessments:8, deals:4, closeRate:50 },
-      { name:'Jesus', assessments:8, deals:5, closeRate:63 },
+      { name:'Fernando', assessments:11, deals:4, closeRate:36 },
+      { name:'Trevor', assessments:12, deals:5, closeRate:42 },
+      { name:'JesÃºs', assessments:10, deals:6, closeRate:60 },
       { name:'Gary', assessments:13, deals:7, closeRate:54 },
       { name:'Demetrius', assessments:3, deals:2, closeRate:67 },
-      { name:'David', assessments:6, deals:4, closeRate:67 },
-      { name:'Geronimo', assessments:0, deals:0, closeRate:0 },
+      { name:'David', assessments:7, deals:5, closeRate:71 },
+      { name:'Olivia', assessments:3, deals:3, closeRate:100 },
       { name:'Mario', assessments:0, deals:0, closeRate:0 },
       { name:'Jahan', assessments:0, deals:0, closeRate:0 },
       { name:'Isaac', assessments:0, deals:0, closeRate:0 },
@@ -794,7 +820,7 @@ const FALLBACK_DATA = {
       { name:'Jesus', assessments:8, deals:6, closeRate:75 },
       { name:'Gary', assessments:16, deals:12, closeRate:75 },
       { name:'Demetrius', assessments:18, deals:14, closeRate:78 },
-      { name:'David', assessments:3, deals:2, closeRate:67 },
+      { name:'David', assessments:3, deals:4, closeRate:67 },
       { name:'Jahan', assessments:1, deals:1, closeRate:100 },
       { name:'Isaac', assessments:4, deals:2, closeRate:50 },
     ]
@@ -865,9 +891,9 @@ Object.values(FALLBACK_DATA).forEach(d => {
   d.pmTeam.forEach(m => allPeople.add(m.name));
 });
 
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 // MAIN
-// ═══════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function init(skipLoading) {
   if (!skipLoading) loadSettings();
   let useFallback = false;
@@ -907,18 +933,17 @@ async function loadMonth(gid, useFallback) {
   const eb = document.getElementById('errorBanner');
   eb.classList.remove('show');
 
+  // Always try live data first, even if tab discovery used fallback
   try {
-    if (useFallback && FALLBACK_DATA[gid]) {
+    const raw = await fetchTabData(gid);
+    const data = parseSheetData(raw);
+    if (data.bdrTeam.length > 0 || data.pmTeam.length > 0) {
+      currentData = data;
+      setLiveStatus(true);
+    } else if (FALLBACK_DATA[gid]) {
+      // Live fetch returned empty data â use fallback
       currentData = FALLBACK_DATA[gid];
       setLiveStatus(false);
-    } else {
-      const raw = await fetchTabData(gid);
-      currentData = parseSheetData(raw);
-      if (currentData.bdrTeam.length === 0 && currentData.pmTeam.length === 0 && FALLBACK_DATA[gid]) {
-        currentData = FALLBACK_DATA[gid]; cn.style.display = 'block'; setLiveStatus(false);
-      } else {
-        setLiveStatus(true);
-      }
     }
     renderSummary(currentData.bdrTeam, currentData.pmTeam);
     renderTeams(currentData.bdrTeam, currentData.pmTeam);
@@ -928,8 +953,10 @@ async function loadMonth(gid, useFallback) {
       currentData = FALLBACK_DATA[gid];
       renderSummary(currentData.bdrTeam, currentData.pmTeam);
       renderTeams(currentData.bdrTeam, currentData.pmTeam);
-      cn.style.display = 'block'; setLiveStatus(false);
-    } else { eb.classList.add('show'); }
+      setLiveStatus(false);
+    } else {
+      eb.classList.add('show');
+    }
   }
 }
 
