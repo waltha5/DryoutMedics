@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dry Out Medics â Sales Leaderboard</title>
+<title>Dry Out Medics — Sales Leaderboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -188,7 +188,7 @@
 
   .footer { text-align: center; margin-top: 40px; color: var(--text-dim); font-size: 0.78rem; }
 
-  /* ââ Admin Modal ââ */
+  /* ── Admin Modal ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000;
     display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
@@ -362,9 +362,9 @@
 </div>
 
 <script>
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ══════════════════════════════════════════════════
 // CONFIG & STATE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 const DEFAULT_SHEET_ID = '1nkgEfjhf7rYPtYPMfNjdd86DXKjW76Lx2YOdbb30zt8';
 const DEFAULT_PASSWORD = 'dryout2026';
 
@@ -396,9 +396,9 @@ const COLORS = [
   'linear-gradient(135deg, #54a0ff, #2e86de)',
 ];
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // LOCAL STORAGE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function loadSettings() {
   try {
     const s = localStorage.getItem('lb_settings');
@@ -425,9 +425,9 @@ function savePhotos() {
   try { localStorage.setItem('lb_photos', JSON.stringify(photoStore)); } catch(e) {}
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // GOOGLE SHEETS API
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 async function fetchSheetTabs() {
   const htmlUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/htmlview`;
   const resp = await fetch(htmlUrl);
@@ -462,7 +462,7 @@ async function fetchSheetTabs() {
     }));
   }
 
-  // Auto-discover months by probing sheet names â works cross-origin via gviz/tq
+  // Auto-discover months by probing sheet names — works cross-origin via gviz/tq
   // This handles the case where /htmlview returns no tab structure (e.g. cross-origin)
   const MONTH_NAMES = ['January','February','March','April','May','June',
                        'July','August','September','October','November','December'];
@@ -504,8 +504,7 @@ async function fetchTabData(gid) {
   return JSON.parse(text);
 }
 
-function parseSheetData(gvizData) {
-  const rows = gvizData.table.rows;
+function parseSheetData(gvizData.table.rows;
   let bdrTeam = [], pmTeam = [];
   let inBdr = false, bdrHeaderRow = -1, pmHeaderRow = -1;
 
@@ -548,9 +547,9 @@ function pPct(c) {
   return 0;
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // RANKING
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function rankBDR(team) {
   return [...team].filter(m => m.deals > 0).sort((a,b) => b.deals - a.deals || b.leads - a.leads);
 }
@@ -568,9 +567,9 @@ function rankPM(team) {
   }).sort((a,b) => b.weightedScore - a.weightedScore || b.deals - a.deals);
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // RENDERING
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function getInitials(n) { return n.split(/[\s,]+/).filter(Boolean).map(w => w[0].toUpperCase()).slice(0,2).join(''); }
 function getColor(n) { let h=0; for(let i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h); return COLORS[Math.abs(h)%COLORS.length]; }
 function photoKey(name) { return name.toLowerCase().replace(/\s+/g,'_'); }
@@ -629,7 +628,7 @@ function leaderRow(m, i, type, maxVal) {
   return `
     <div class="leader-row ${rc}" style="animation-delay:${0.05*i}s">
       <div class="bar-fill" style="width:${barW}%"></div>
-      <span class="rank-num">${trophy || '#'+rank}</span>
+      <span class="rank-num">${trophy||'#'+rank}</span>
       <div class="avatar${adminClass}" style="${aStyle}" data-name="${pk}" ${clickHandler}>
         ${aC}
         ${isAdminLoggedIn ? '<div class="upload-hint">&#128247;</div>' : ''}
@@ -646,30 +645,29 @@ function leaderRow(m, i, type, maxVal) {
   `;
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // PHOTO UPLOAD (Admin only)
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-[]Ý\[ÝÕ\Ù]H[Â[Ý[ÛYÙÙ\ÝÕ\ØY
-[YJHÂY
-Z\ÐYZ[ÙÙÙY[H]\ÂÝ\[ÝÕ\Ù]H[YNÂØÝ[Y[Ù][[Y[RY
-	ÜÝÒ[]	ÊKÛXÚÊ
-NÂBØÝ[Y[Ù][[Y[RY
-	ÜÝÒ[]	ÊKY][\Ý[\	ØÚ[ÙIË[Ý[ÛJHÂÛÛÝ[HHK\Ù][\ÖÌNÂY
-Y[HXÝ\[ÝÕ\Ù]
-H]\ÂÛÛÝXY\H]È[TXY\
-NÂXY\ÛØYH[Ý[Û]HÂÛÛÝ[YÈH]È[XYÙJ
-NÂ[YËÛØYH[Ý[Û
-HÂÛÛÝØ[\ÈHØÝ[Y[ÜX]Q[[Y[
-	ØØ[\ÉÊNÂÛÛÝÚ^HHLÈØ[\ËÚYHÚ^NÈØ[\ËZYÚHÚ^NÂÛÛÝÝHØ[\ËÙ]ÛÛ^
-	Ì	ÊNÂÛÛÝØØ[HHX]X^
-Ú^KÚ[YËÚYÚ^KÚ[YËZYÚ
-NÂÛÛÝÏZ[YËÚY
-ØØ[KZ[YËZYÚ
-ØØ[NÂÝ]Ò[XYÙJ[YË
-Ú^K]ÊKÌ
-Ú^KZ
-KÌË
-NÂÝÔÝÜVØÝ\[ÝÕ\Ù]HHØ[\ËÑ]UTcymage/jpeg', 0.85);
+// ═══════════════════════════════════════════════════
+let currentPhotoTarget = null;
+function triggerPhotoUpload(name) {
+  if (!isAdminLoggedIn) return;
+  currentPhotoTarget = name;
+  document.getElementById('photoInput').click();
+}
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !currentPhotoTarget) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 120; canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w=img.width*scale, h=img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      photoStore[currentPhotoTarget] = canvas.toDataURL('image/jpeg', 0.85);
       savePhotos();
       if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
       renderPhotoGrid();
@@ -680,9 +678,9 @@ NÂÝÔÝÜVØÝ\[ÝÕ\Ù]HHØ[\ËÑ]UT
   e.target.value = '';
 });
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // ADMIN PANEL
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function openAdmin() {
   document.getElementById('adminModal').classList.add('show');
   if (isAdminLoggedIn) {
@@ -758,9 +756,9 @@ function removePhoto(pk) {
   if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // AUTO-REFRESH
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function startAutoRefresh() {
   clearInterval(autoRefreshTimer);
   clearInterval(countdownTimer);
@@ -780,9 +778,9 @@ function startAutoRefresh() {
   }, autoRefreshSec * 1000);
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // LIVE BADGE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 function setLiveStatus(live) {
   isLive = live;
   const badge = document.getElementById('liveBadge');
@@ -796,9 +794,9 @@ function setLiveStatus(live) {
   }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // FALLBACK DATA
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 const FALLBACK_TABS = [
   { gid: '499280765', name: 'February Sales Leaderboard' },
   { gid: '691858394', name: 'January Sales Leaderboard' },
@@ -816,13 +814,13 @@ const FALLBACK_DATA = {
       { name:'Sofia', leads:4, deals:2, closeRate:50 },
       { name:'Shara', leads:2, deals:1, closeRate:50 },
       { name:'Demetrius', leads:0, deals:0, closeRate:0 },
-      { name:'JesÃºs', leads:0, deals:0, closeRate:0 },
+      { name:'Jesús', leads:0, deals:0, closeRate:0 },
       { name:'Jules', leads:3, deals:3, closeRate:100 },
     ],
     pmTeam: [
       { name:'Fernando', assessments:11, deals:4, closeRate:36 },
       { name:'Trevor', assessments:12, deals:5, closeRate:42 },
-      { name:'JesÃºs', assessments:10, deals:6, closeRate:60 },
+      { name:'Jesús', assessments:10, deals:6, closeRate:60 },
       { name:'Gary', assessments:13, deals:7, closeRate:54 },
       { name:'Demetrius', assessments:3, deals:2, closeRate:67 },
       { name:'David', assessments:7, deals:5, closeRate:71 },
@@ -857,7 +855,7 @@ const FALLBACK_DATA = {
   '1151265052': {
     bdrTeam: [
       { name:'Arpi', leads:29, deals:20, closeRate:69 },
-      { name:'Sofia', leads:10, deals:3, closeRate:30 },
+      { name:'Sofia', leads:10, deals:4, closeRate:40 },
       { name:'Demetrius', leads:8, deals:5, closeRate:63 },
       { name:'Jules', leads:5, deals:1, closeRate:20 },
       { name:'Ammar', leads:2, deals:2, closeRate:100 },
@@ -880,142 +878,7 @@ const FALLBACK_DATA = {
       { name:'Sofia', leads:6, deals:4, closeRate:67 },
       { name:'Jules', leads:2, deals:2, closeRate:100 },
       { name:'Ammar', leads:5, deals:1, closeRate:20 },
-      { name:'Jesus', leads:6, deals:3, closeRate:50 },
-      { name:Remove</button>` : ''}
-      </div>
-    `;
-  }).join('');
-}
-function removePhoto(pk) {
-  delete photoStore[pk];
-  savePhotos();
-  renderPhotoGrid();
-  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
-}
-
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-// AUTO-REFRESH
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-function startAutoRefresh() {
-  clearInterval(autoRefreshTimer);
-  clearInterval(countdownTimer);
-  const ind = document.getElementById('autoRefreshIndicator');
-  if (autoRefreshSec <= 0) { ind.style.display = 'none'; return; }
-  ind.style.display = 'inline-flex';
-  countdownVal = autoRefreshSec;
-  document.getElementById('countdown').textContent = countdownVal;
-  countdownTimer = setInterval(() => {
-    countdownVal--;
-    if (countdownVal < 0) countdownVal = autoRefreshSec;
-    document.getElementById('countdown').textContent = countdownVal;
-  }, 1000);
-  autoRefreshTimer = setInterval(() => {
-    countdownVal = autoRefreshSec;
-    refreshData();
-  }, autoRefreshSec * 1000);
-}
-
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-// LIVE BADGE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-function setLiveStatus(live) {
-  isLive = live;
-  const badge = document.getElementById('liveBadge');
-  const text = document.getElementById('liveText');
-  if (live) {
-    badge.classList.remove('offline');
-    text.textContent = 'LIVE';
-  } else {
-    badge.classList.add('offline');
-    text.textContent = 'CACHED DATA';
-  }
-}
-
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-// FALLBACK DATA
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
-const FALLBACK_TABS = [
-  { gid: '499280765', name: 'February Sales Leaderboard' },
-  { gid: '691858394', name: 'January Sales Leaderboard' },
-  { gid: '1151265052', name: 'December Sales Leaderboard' },
-  { gid: '1344481906', name: 'November Sales Leaderboard' },
-  { gid: '0', name: 'October Sales Leaderboard' },
-];
-
-const FALLBACK_DATA = {
-  '499280765': {
-    bdrTeam: [
-      { name:'Arpi', leads:21, deals:10, closeRate:48 },
-      { name:'Gary', leads:5, deals:3, closeRate:60 },
-      { name:'Ammar', leads:1, deals:1, closeRate:100 },
-      { name:'Sofia', leads:4, deals:2, closeRate:50 },
-      { name:'Shara', leads:2, deals:1, closeRate:50 },
-      { name:'Demetrius', leads:0, deals:0, closeRate:0 },
-      { name:'JesÃºs', leads:0, deals:0, closeRate:0 },
-      { name:'Jules', leads:3, deals:3, closeRate:100 },
-    ],
-    pmTeam: [
-      { name:'Fernando', assessments:11, deals:4, closeRate:36 },
-      { name:'Trevor', assessments:12, deals:5, closeRate:42 },
-      { name:'JesÃºs', assessments:10, deals:6, closeRate:60 },
-      { name:'Gary', assessments:13, deals:7, closeRate:54 },
-      { name:'Demetrius', assessments:3, deals:2, closeRate:67 },
-      { name:'David', assessments:7, deals:5, closeRate:71 },
-      { name:'Olivia', assessments:3, deals:3, closeRate:100 },
-      { name:'Mario', assessments:0, deals:0, closeRate:0 },
-      { name:'Jahan', assessments:0, deals:0, closeRate:0 },
-      { name:'Isaac', assessments:0, deals:0, closeRate:0 },
-    ]
-  },
-  '691858394': {
-    bdrTeam: [
-      { name:'Arpi', leads:17, deals:9, closeRate:53 },
-      { name:'Gary', leads:9, deals:7, closeRate:78 },
-      { name:'Ammar', leads:6, deals:5, closeRate:83 },
-      { name:'Sofia', leads:7, deals:7, closeRate:100 },
-      { name:'Shara', leads:7, deals:4, closeRate:57 },
-      { name:'Demetrius', leads:5, deals:3, closeRate:60 },
-      { name:'Jesus', leads:4, deals:2, closeRate:50 },
-      { name:'Jules', leads:4, deals:3, closeRate:75 },
-    ],
-    pmTeam: [
-      { name:'Fernando', assessments:18, deals:9, closeRate:50 },
-      { name:'Trevor', assessments:19, deals:14, closeRate:74 },
-      { name:'Jesus', assessments:8, deals:6, closeRate:75 },
-      { name:'Gary', assessments:16, deals:12, closeRate:75 },
-      { name:'Demetrius', assessments:18, deals:14, closeRate:78 },
-      { name:'David', assessments:3, deals:2, closeRate:67 },
-      { name:'Jahan', assessments:1, deals:1, closeRate:100 },
-      { name:'Isaac', assessments:4, deals:2, closeRate:50 },
-    ]
-  },
-  '1151265052': {
-    bdrTeam: [
-      { name:'Arpi', leads:29, deals:20, closeRate:69 },
-      { name:'Sofia', leads:10, deals:3, closeRate:30 },
-      { name:'Demetrius', leads:8, deals:5, closeRate:63 },
-      { name:'Jules', leads:5, deals:1, closeRate:20 },
-      { name:'Ammar', leads:2, deals:2, closeRate:100 },
-      { name:'Gary', leads:14, deals:10, closeRate:71 },
-    ],
-    pmTeam: [
-      { name:'Fernando', assessments:15, deals:11, closeRate:73 },
-      { name:'Trevor', assessments:17, deals:10, closeRate:59 },
-      { name:'Jesus', assessments:6, deals:3, closeRate:50 },
-      { name:'Gary', assessments:19, deals:12, closeRate:63 },
-      { name:'Demetrius', assessments:17, deals:9, closeRate:53 },
-      { name:'Mario', assessments:1, deals:1, closeRate:100 },
-      { name:'Jahan', assessments:1, deals:1, closeRate:100 },
-      { name:'Isaac', assessments:8, deals:6, closeRate:75 },
-    ]
-  },
-  '1344481906': {
-    bdrTeam: [
-      { name:'Arpi', leads:36, deals:29, closeRate:81 },
-      { name:'Sofia', leads:6, deals:4, closeRate:67 },
-      { name:'Jules', leads:2, deals:2, closeRate:100 },
-      { name:'Ammar', leads:5, deals:1, closeRate:20 },
-      { name:'Jesus', leads:6, deals:3, closeRate:50 },
+      { name:'Jesus', leads:6, deals:4, closeRate:67 },
       { name:'Gary', leads:11, deals:11, closeRate:100 },
     ],
     pmTeam: [
@@ -1055,9 +918,9 @@ Object.values(FALLBACK_DATA).forEach(d => {
   d.pmTeam.forEach(m => allPeople.add(m.name));
 });
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 // MAIN
-// âââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════
 async function init(skipLoading) {
   if (!skipLoading) loadSettings();
   let useFallback = false;
@@ -1105,7 +968,7 @@ async function loadMonth(gid, useFallback) {
       currentData = data;
       setLiveStatus(true);
     } else if (FALLBACK_DATA[gid]) {
-      // Live fetch returned empty data â use fallback
+      // Live fetch returned empty data — use fallback
       currentData = FALLBACK_DATA[gid];
       setLiveStatus(false);
     }
