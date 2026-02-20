@@ -504,7 +504,8 @@ async function fetchTabData(gid) {
   return JSON.parse(text);
 }
 
-function parseSheetData(gvizData.table.rows;
+function parseSheetData(gvizData) {
+  const rows = gvizData.table.rows;
   let bdrTeam = [], pmTeam = [];
   let inBdr = false, bdrHeaderRow = -1, pmHeaderRow = -1;
 
