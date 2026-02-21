@@ -507,33 +507,36 @@ async function fetchTabData(gid) {
 function parseSheetData(gvizData) {
   const rows = gvizData.table.rows;
   let bdrTeam = [], pmTeam = [];
-  let inBdr = false, bdrHeaderRow = -1, pmHeaderRow = -1;
+  const bdrSeen = new Set(), pmSeen = new Set();
 
   for (let i = 0; i < rows.length; i++) {
     const cells = rows[i].c;
     if (!cells) continue;
     const cv = cells.map(c => c ? (c.v != null ? String(c.v) : '') : '');
-    const joined = cv.join('').toLowerCase();
 
-    if (joined.includes('rank') && joined.includes('bdr') && joined.includes('leads')) { bdrHeaderRow = i; inBdr = true; continue; }
-    if (joined.includes('pm') && joined.includes('assessments') && joined.includes('deals')) { pmHeaderRow = i; inBdr = false; continue; }
-    if (joined.includes('bdr team')) { inBdr = true; continue; }
-    if (joined.includes('pm team')) { inBdr = false; continue; }
-    if (joined.includes('total')) { inBdr = false; continue; }
+    // Stop at totals row
+    if (cv[6] === 'TOTAL' || cv[2] === 'TOTAL') break;
 
-    if (inBdr && bdrHeaderRow >= 0) {
-      const name = cv[2] ? cv[2].trim() : '';
-      if (name && !name.includes('#REF')) {
-        bdrTeam.push({ name, leads: pNum(cells[3]), deals: pNum(cells[4]), closeRate: pPct(cells[5]) });
-        allPeople.add(name);
-      }
+    // Skip header/separator rows
+    const bdrCell = cv[2] ? cv[2].trim() : '';
+    const pmCell  = cv[6] ? cv[6].trim() : '';
+    const bdrLow  = bdrCell.toLowerCase();
+    const pmLow   = pmCell.toLowerCase();
+    if (bdrLow === 'bdr' || bdrLow === 'bdr team' || bdrLow === 'rank') continue;
+    if (pmLow === 'pm' || pmLow === 'pm team' || pmLow === 'total') continue;
+
+    // BDR member: col 2 has a name
+    if (bdrCell && !bdrCell.includes('#REF') && !bdrSeen.has(bdrCell)) {
+      bdrTeam.push({ name: bdrCell, leads: pNum(cells[3]), deals: pNum(cells[4]), closeRate: pPct(cells[5]) });
+      bdrSeen.add(bdrCell);
+      allPeople.add(bdrCell);
     }
-    if (pmHeaderRow >= 0) {
-      const pmName = cv[6] ? cv[6].trim() : '';
-      if (pmName && pmName.toLowerCase() !== 'total' && pmName.toLowerCase() !== 'pm' && !pmTeam.find(p => p.name === pmName)) {
-        pmTeam.push({ name: pmName, assessments: pNum(cells[7]), deals: pNum(cells[8]), closeRate: pPct(cells[9]) });
-        allPeople.add(pmName);
-      }
+
+    // PM member: col 6 has a name
+    if (pmCell && !pmSeen.has(pmCell)) {
+      pmTeam.push({ name: pmCell, assessments: pNum(cells[7]), deals: pNum(cells[8]), closeRate: pPct(cells[9]) });
+      pmSeen.add(pmCell);
+      allPeople.add(pmCell);
     }
   }
   return { bdrTeam, pmTeam };
