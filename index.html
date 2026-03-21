@@ -758,5 +758,340 @@ async function refreshData() {
 document.getElementById('adminModal').addEventListener('click', function(e) { if (e.target === this) closeAdmin(); });
 init();
 </script>
+
+<!-- ============================================================
+     DEAL CELEBRATION — sound picker + confetti splash
+     Insert this block right before </body>
+     ============================================================ -->
+
+<!-- Fixed 🔊 trigger button (bottom-right) -->
+<button id="celebBtn" onclick="openCelebPanel()" title="Celebration sounds" style="
+  position:fixed; bottom:24px; right:24px; z-index:3000;
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,#9b59b6,#6c3483);
+  border:none; cursor:pointer; font-size:1.4rem;
+  box-shadow:0 4px 20px rgba(155,89,182,0.5);
+  transition:transform 0.2s, box-shadow 0.2s;
+  display:flex; align-items:center; justify-content:center;
+" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">🔊</button>
+
+<!-- Sound picker panel -->
+<div id="celebPanel" style="
+  display:none; position:fixed; bottom:88px; right:24px; z-index:3000;
+  background:#1a1a2e; border:1px solid #9b59b6; border-radius:16px;
+  padding:18px 20px; min-width:270px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  font-family:'Inter',-apple-system,sans-serif;
+">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-weight:800;color:#f0f0f0;font-size:1rem;">🎶 Choose a Sound</span>
+    <button onclick="closeCelebPanel()" style="background:none;border:none;color:#8888aa;font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <div id="soundList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  <div style="margin-top:14px;border-top:1px solid #2a2a44;padding-top:12px;">
+    <button onclick="testCelebration()" style="
+      width:100%;background:linear-gradient(135deg,#9b59b6,#6c3483);
+      border:none;color:#fff;padding:10px;border-radius:10px;
+      font-size:0.9rem;font-weight:700;cursor:pointer;
+    ">🎉 Test Celebration</button>
+  </div>
+</div>
+
+<!-- Winner banner overlay -->
+<div id="winnerBanner" style="
+  display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+  z-index:4000; pointer-events:none;
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+">
+  <div id="winnerText" style="
+    background:linear-gradient(135deg,#9b59b6,#6c3483);
+    color:#fff; padding:28px 48px; border-radius:20px;
+    font-size:2rem; font-weight:900; text-align:center;
+    box-shadow:0 8px 40px rgba(155,89,182,0.6);
+    animation:celebPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    pointer-events:auto;
+  "></div>
+</div>
+
+<!-- Confetti canvas -->
+<canvas id="confettiCanvas" style="
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  pointer-events:none; z-index:3999;
+"></canvas>
+
+<style>
+@keyframes celebPop {
+  from { transform: scale(0.4) rotate(-8deg); opacity:0; }
+  to   { transform: scale(1) rotate(0deg); opacity:1; }
+}
+#celebPanel { animation: fadeInUp 0.2s ease; }
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
+
+<script>
+(function(){
+  // ─── Sound definitions (Web Audio API — no external files needed) ───────
+  const SOUNDS = [
+    { id:'fanfare',   emoji:'🎺', label:'Fanfare',       fn: playFanfare   },
+    { id:'cash',      emoji:'💰', label:'Cash Register', fn: playCash      },
+    { id:'party',     emoji:'🎉', label:'Party Poppers', fn: playParty     },
+    { id:'bell',      emoji:'🔔', label:'Victory Bell',  fn: playBell      },
+    { id:'airhorn',   emoji:'📯', label:'Air Horn',      fn: playAirhorn   },
+  ];
+
+  let selectedSound = 'fanfare';
+  let audioCtx = null;
+  let prevDeals = {};
+  let confettiParticles = [];
+  let confettiAnim = null;
+
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  // ─── Sound generators ────────────────────────────────────────────────────
+  function playFanfare() {
+    const ctx = getCtx(), now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+    const times = [0, 0.12, 0.24, 0.38, 0.52, 0.60];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square'; osc.frequency.value = freq;
+      const t = now + times[i];
+      gain.gain.setValueAtTime(0.25, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.start(t); osc.stop(t + 0.2);
+    });
+  }
+
+  function playCash() {
+    const ctx = getCtx(), now = ctx.currentTime;
+    // Ding
+    [1200, 1600, 2000].forEach((f, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = f;
+      const t = now + i * 0.07;
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.start(t); osc.stop(t + 0.4);
+    });
+    // Drawer clunk
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = ctx.createBufferSource(), g2 = ctx.createGain();
+    src.buffer = buf; src.connect(g2); g2.connect(ctx.destination);
+    g2.gain.value = 0.4;
+    src.start(now + 0.25);
+  }
+
+  function playParty() {
+    const ctx = getCtx(), now = ctx.currentTime;
+    for (let p = 0; p < 5; p++) {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.4));
+      const src = ctx.createBufferSource(), gain = ctx.createGain();
+      const filt = ctx.createBiquadFilter();
+      filt.type = 'bandpass'; filt.frequency.value = 800 + p * 400;
+      src.buffer = buf; src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+      gain.gain.value = 0.35;
+      src.start(now + p * 0.11);
+    }
+  }
+
+  function playBell() {
+    const ctx = getCtx(), now = ctx.currentTime;
+    [880, 1108, 1320].forEach((f, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = f;
+      const t = now + i * 0.04;
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      osc.start(t); osc.stop(t + 1.3);
+    });
+  }
+
+  function playAirhorn() {
+    const ctx = getCtx(), now = ctx.currentTime;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const dist = ctx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = i * 2 / 256 - 1; curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x)); }
+    dist.curve = curve;
+    osc.connect(dist); dist.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sawtooth'; osc.frequency.value = 233;
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.setValueAtTime(0.35, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+    osc.start(now); osc.stop(now + 1.0);
+  }
+
+  // ─── Confetti ────────────────────────────────────────────────────────────
+  function launchConfetti() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx2 = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const colors = ['#9b59b6','#ffd700','#ff6b6b','#6bffb8','#6bb5ff','#ff6bef','#fff'];
+    confettiParticles = [];
+    for (let i = 0; i < 180; i++) {
+      confettiParticles.push({
+        x: Math.random() * canvas.width,
+        y: -10 - Math.random() * 80,
+        r: 5 + Math.random() * 7,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 6,
+        vy: 3 + Math.random() * 5,
+        rot: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 0.2,
+        shape: Math.random() < 0.5 ? 'rect' : 'circle',
+      });
+    }
+    if (confettiAnim) cancelAnimationFrame(confettiAnim);
+    let frames = 0;
+    function tick() {
+      ctx2.clearRect(0, 0, canvas.width, canvas.height);
+      confettiParticles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.rot += p.spin; p.vy += 0.08;
+        ctx2.save(); ctx2.translate(p.x, p.y); ctx2.rotate(p.rot);
+        ctx2.fillStyle = p.color;
+        if (p.shape === 'rect') {
+          ctx2.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+        } else {
+          ctx2.beginPath(); ctx2.arc(0, 0, p.r / 2, 0, Math.PI * 2); ctx2.fill();
+        }
+        ctx2.restore();
+      });
+      confettiParticles = confettiParticles.filter(p => p.y < canvas.height + 20);
+      frames++;
+      if (confettiParticles.length > 0 && frames < 300) {
+        confettiAnim = requestAnimationFrame(tick);
+      } else {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+    tick();
+  }
+
+  // ─── Winner banner ───────────────────────────────────────────────────────
+  function showWinnerBanner(name) {
+    const banner = document.getElementById('winnerBanner');
+    const txt = document.getElementById('winnerText');
+    txt.innerHTML = name
+      ? `🏆 DEAL CLOSED!<br><span style="font-size:1.3rem;opacity:0.9;">${name}</span>`
+      : '🏆 DEAL CLOSED!';
+    banner.style.display = 'flex';
+    setTimeout(() => { banner.style.display = 'none'; }, 3500);
+  }
+
+  // ─── Full celebration ────────────────────────────────────────────────────
+  function celebrate(name) {
+    const sound = SOUNDS.find(s => s.id === selectedSound) || SOUNDS[0];
+    try { sound.fn(); } catch(e) {}
+    launchConfetti();
+    showWinnerBanner(name);
+  }
+
+  // ─── Panel UI ────────────────────────────────────────────────────────────
+  window.openCelebPanel = function() {
+    const panel = document.getElementById('celebPanel');
+    const list = document.getElementById('soundList');
+    list.innerHTML = SOUNDS.map(s => `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div onclick="selectSound('${s.id}')" id="snd_${s.id}" style="
+          flex:1; display:flex; align-items:center; gap:8px;
+          padding:9px 12px; border-radius:10px; cursor:pointer;
+          border:2px solid ${selectedSound===s.id?'#9b59b6':'#2a2a44'};
+          background:${selectedSound===s.id?'rgba(155,89,182,0.15)':'rgba(255,255,255,0.02)'};
+          color:#f0f0f0; font-size:0.88rem; font-weight:600;
+          transition:all 0.15s;
+        ">
+          <span>${s.emoji}</span><span>${s.label}</span>
+        </div>
+        <button onclick="previewSound('${s.id}')" style="
+          background:rgba(155,89,182,0.2); border:1px solid #9b59b6;
+          color:#f0f0f0; padding:6px 10px; border-radius:8px;
+          font-size:0.75rem; cursor:pointer; white-space:nowrap;
+        ">▶ Play</button>
+      </div>
+    `).join('');
+    panel.style.display = 'block';
+  };
+
+  window.closeCelebPanel = function() {
+    document.getElementById('celebPanel').style.display = 'none';
+  };
+
+  window.selectSound = function(id) {
+    selectedSound = id;
+    window.openCelebPanel(); // re-render to update selection highlight
+  };
+
+  window.previewSound = function(id) {
+    const sound = SOUNDS.find(s => s.id === id);
+    if (sound) try { sound.fn(); } catch(e) {}
+  };
+
+  window.testCelebration = function() {
+    closeCelebPanel();
+    celebrate('Test Winner 🎉');
+  };
+
+  // ─── Auto-detect deal increases on leaderboard refresh ───────────────────
+  function snapshotDeals() {
+    const rows = document.querySelectorAll('.leader-row');
+    const snap = {};
+    rows.forEach(row => {
+      const nameEl = row.querySelector('.leader-name');
+      const statEl = row.querySelector('.leader-stat .big');
+      if (nameEl && statEl) {
+        const name = nameEl.textContent.trim();
+        const raw = statEl.textContent.trim().replace('%','');
+        const val = parseFloat(raw);
+        if (!isNaN(val)) snap[name] = val;
+      }
+    });
+    return snap;
+  }
+
+  function checkForNewDeals() {
+    const current = snapshotDeals();
+    let winner = null;
+    Object.keys(current).forEach(name => {
+      if (prevDeals[name] !== undefined && current[name] > prevDeals[name]) {
+        winner = name;
+      }
+    });
+    prevDeals = current;
+    if (winner) celebrate(winner);
+  }
+
+  // Snapshot on load, then watch for DOM mutations (leaderboard re-renders)
+  setTimeout(() => { prevDeals = snapshotDeals(); }, 2000);
+
+  const observer = new MutationObserver(() => {
+    clearTimeout(window._celebCheckTimer);
+    window._celebCheckTimer = setTimeout(checkForNewDeals, 600);
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Close panel when clicking outside
+  document.addEventListener('click', function(e) {
+    const panel = document.getElementById('celebPanel');
+    const btn = document.getElementById('celebBtn');
+    if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
+})();
+</script>
 </body>
 </html>
