@@ -382,11 +382,11 @@ function parseSheetData(gvizData) {
       pmSeen.add(pmCell);
       allPeople.add(pmCell);
     }
-    const fieldCell = cv[11] ? cv[11].trim() : '';
+    const fieldCell = cv[10] ? cv[10].trim() : '';
     const fieldLow = fieldCell.toLowerCase();
     if (fieldLow === 'field' || fieldLow === 'field team' || fieldLow === 'name' || fieldLow === 'rank') { /* skip header */ }
     else if (fieldCell && !fieldCell.includes('#REF') && !fieldSeen.has(fieldCell)) {
-      fieldTeam.push({ name: fieldCell, points: pNum(cells[12]) });
+      fieldTeam.push({ name: fieldCell, points: pNum(cells[11]) });
       fieldSeen.add(fieldCell);
       allPeople.add(fieldCell);
     }
