@@ -264,7 +264,7 @@ async function loadRemotePhotos() {
       if (Object.keys(remote).length > 0) photoStore = Object.assign({}, BUNDLED_PHOTOS, remote);
     }
   } catch(e) {}
-  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
 }
 function loadSettings() {
   try {
@@ -359,8 +359,8 @@ async function fetchTabData(gid) {
 }
 function parseSheetData(gvizData) {
   const rows = gvizData.table.rows;
-  let bdrTeam = [], pmTeam = [];
-  const bdrSeen = new Set(), pmSeen = new Set();
+  let bdrTeam = [], pmTeam = [], fieldTeam = [];
+  const bdrSeen = new Set(), pmSeen = new Set(), fieldSeen = new Set();
   for (let i = 0; i < rows.length; i++) {
     const cells = rows[i].c;
     if (!cells) continue;
@@ -382,8 +382,16 @@ function parseSheetData(gvizData) {
       pmSeen.add(pmCell);
       allPeople.add(pmCell);
     }
+    const fieldCell = cv[11] ? cv[11].trim() : '';
+    const fieldLow = fieldCell.toLowerCase();
+    if (fieldLow === 'field' || fieldLow === 'field team' || fieldLow === 'name' || fieldLow === 'rank') { /* skip header */ }
+    else if (fieldCell && !fieldCell.includes('#REF') && !fieldSeen.has(fieldCell)) {
+      fieldTeam.push({ name: fieldCell, points: pNum(cells[12]) });
+      fieldSeen.add(fieldCell);
+      allPeople.add(fieldCell);
+    }
   }
-  return { bdrTeam, pmTeam };
+  return { bdrTeam, pmTeam, fieldTeam };
 }
 function pNum(c) { if (!c || c.v == null) return 0; const n = Number(c.v); return isNaN(n) ? 0 : n; }
 function pPct(c) {
@@ -398,6 +406,10 @@ function pPct(c) {
 function rankBDR(team) {
   return [...team].filter(m => !isHouseAccount(m.name) && (m.deals > 0 || m.leads > 0))
     .sort((a, b) => b.deals - a.deals || b.leads - a.leads);
+}
+function rankField(team) {
+  return [...team].filter(m => !isHouseAccount(m.name) && m.points > 0)
+    .sort((a, b) => b.points - a.points);
 }
 function rankPM(team) {
   const active = team.filter(m => !isHouseAccount(m.name) && m.assessments > 0 && m.deals > 0);
@@ -426,7 +438,7 @@ function toggleCard(id) {
   }
   localStorage.setItem('lb_hidden_cards', JSON.stringify([...hiddenCards]));
   // Re-render the summary with current data
-  if (currentData) renderSummary(currentData.bdrTeam, currentData.pmTeam);
+  if (currentData) renderSummary(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
 }
 function makeSummaryCard(id, value, label, color, delay) {
   const hidden = hiddenCards.has(id);
@@ -436,18 +448,21 @@ function makeSummaryCard(id, value, label, color, delay) {
     <div class="label">${label}</div>
   </div>`;
 }
-function renderSummary(bdr, pm) {
+function renderSummary(bdr, pm, field) {
+  field = field || [];
   const bL = bdr.reduce((s,m) => s+m.leads, 0);
   const bD = bdr.reduce((s,m) => s+m.deals, 0);
   const pA = pm.reduce((s,m) => s+m.assessments, 0);
   const pD = pm.reduce((s,m) => s+m.deals, 0);
   const pR = pA > 0 ? Math.round(pD/pA*100) : 0;
+  const fP = field.reduce((s,m) => s+m.points, 0);
   document.getElementById('summaryRow').innerHTML =
     makeSummaryCard('bdr-leads', bL, 'BDR Leads', 'var(--accent1)', 0.05) +
     makeSummaryCard('bdr-deals', bD, 'BDR Deals', 'var(--accent1)', 0.1) +
     makeSummaryCard('pm-assess', pA, 'PM Assessments', 'var(--accent2)', 0.2) +
     makeSummaryCard('pm-deals', pD, 'PM Deals', 'var(--accent2)', 0.25) +
-    makeSummaryCard('pm-close-rate', pR + '%', 'PM Close Rate', 'var(--accent2)', 0.3);
+    makeSummaryCard('pm-close-rate', pR + '%', 'PM Close Rate', 'var(--accent2)', 0.3) +
+    makeSummaryCard('field-points', fP, 'Field Points', 'var(--accent3)', 0.35);
 }
 function leaderRow(m, i, type, maxVal, isHouse) {
   const rank = i + 1;
@@ -467,6 +482,10 @@ function leaderRow(m, i, type, maxVal, isHouse) {
     barW = maxVal > 0 ? (m.deals / maxVal) * 100 : 0;
     statB = m.deals; statU = 'deals';
     sub = `${m.leads} leads`;
+  } else if (type === 'field') {
+    barW = maxVal > 0 ? (m.points / maxVal) * 100 : 0;
+    statB = m.points; statU = 'pts';
+    sub = `${m.points} points`;
   } else {
     barW = maxVal > 0 ? (m.closeRate / maxVal) * 100 : 0;
     statB = m.closeRate + '%'; statU = 'deals';
@@ -492,16 +511,21 @@ function leaderRow(m, i, type, maxVal, isHouse) {
   `;
 }
 
-function renderTeams(bdr, pm) {
-  const rB = rankBDR(bdr), rP = rankPM(pm);
+function renderTeams(bdr, pm, field) {
+  field = field || [];
+  const rB = rankBDR(bdr), rP = rankPM(pm), rF = rankField(field);
   const houseB = bdr.filter(m => isHouseAccount(m.name));
   const houseP = pm.filter(m => isHouseAccount(m.name));
+  const houseF = field.filter(m => isHouseAccount(m.name));
   const mB = rB.length > 0 ? rB[0].deals : 1;
   const mP = rP.length > 0 ? Math.max(...rP.map(m => m.closeRate)) : 100;
+  const mF = rF.length > 0 ? rF[0].points : 1;
   const bdrRows = rB.length === 0 ? '<div class="no-data">No deals recorded this month</div>' : rB.map((m,i) => leaderRow(m,i,'bdr',mB,false)).join('');
   const bdrHouseRows = houseB.map((m,i) => leaderRow(m,i,'bdr',mB,true)).join('');
   const pmRows = rP.length === 0 ? '<div class="no-data">No deals recorded this month</div>' : rP.map((m,i) => leaderRow(m,i,'pm',mP,false)).join('');
   const pmHouseRows = houseP.map((m,i) => leaderRow(m,i,'pm',mP,true)).join('');
+  const fieldRows = rF.length === 0 ? '<div class="no-data">No points recorded this month</div>' : rF.map((m,i) => leaderRow(m,i,'field',mF,false)).join('');
+  const fieldHouseRows = houseF.map((m,i) => leaderRow(m,i,'field',mF,true)).join('');
   document.getElementById('teamsGrid').innerHTML = `
     <div class="team-panel bdr animate-in" style="animation-delay:0.15s">
       <div class="panel-header"><h2>BDR Team</h2><span class="ranking-note">Ranked by total deals</span></div>
@@ -510,6 +534,10 @@ function renderTeams(bdr, pm) {
     <div class="team-panel pm animate-in" style="animation-delay:0.25s">
       <div class="panel-header"><h2>PM Team</h2><span class="ranking-note">Ranked by weighted close rate</span></div>
       <div class="leader-list">${pmRows}${pmHouseRows}</div>
+    </div>
+    <div class="team-panel field animate-in" style="animation-delay:0.35s">
+      <div class="panel-header"><h2>Field Team</h2><span class="ranking-note">Ranked by total points</span></div>
+      <div class="leader-list">${fieldRows}${fieldHouseRows}</div>
     </div>
   `;
 }
@@ -542,7 +570,7 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
       document.body.appendChild(_m);
       if (githubPAT) {
         savePhotos().then(() => {
-          if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+          if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
           renderPhotoGrid();
           _m.textContent = '✅ Photo synced! Visible on all devices now.';
           setTimeout(() => _m.remove(), 3500);
@@ -550,11 +578,11 @@ document.getElementById('photoInput').addEventListener('change', function(e) {
           _m.style.color = 'var(--accent1)';
           _m.textContent = '❌ Sync failed – check your GitHub token in Admin settings.';
           setTimeout(() => _m.remove(), 4000);
-          if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+          if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
           renderPhotoGrid();
         });
       } else {
-        if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+        if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
         renderPhotoGrid();
         setTimeout(() => _m.remove(), 5000);
       }
@@ -595,7 +623,7 @@ function attemptLogin() {
     document.getElementById('sheetIdInput').value = SPREADSHEET_ID;
     document.getElementById('refreshInterval').value = autoRefreshSec;
     renderPhotoGrid();
-    if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+    if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
   } else {
     document.getElementById('loginError').style.display = 'block';
   }
@@ -603,7 +631,7 @@ function attemptLogin() {
 function logoutAdmin() {
   isAdminLoggedIn = false;
   closeAdmin();
-  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+  if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
 }
 function saveAdminSettings() {
   const newId = document.getElementById('sheetIdInput').value.trim();
@@ -639,10 +667,10 @@ function renderPhotoGrid() {
 function removePhoto(pk) {
   delete photoStore[pk];
   if (githubPAT) {
-    savePhotos().then(() => { renderPhotoGrid(); if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam); }).catch(() => { renderPhotoGrid(); if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam); });
+    savePhotos().then(() => { renderPhotoGrid(); if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam); }).catch(() => { renderPhotoGrid(); if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam); });
   } else {
     renderPhotoGrid();
-    if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam);
+    if (currentData) renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
   }
 }
 
@@ -730,14 +758,14 @@ async function loadMonth(gid, useFallback) {
     const data = parseSheetData(raw);
     if (data.bdrTeam.length > 0 || data.pmTeam.length > 0) { currentData = data; setLiveStatus(true); }
     else if (FALLBACK_DATA[gid]) { currentData = FALLBACK_DATA[gid]; setLiveStatus(false); }
-    renderSummary(currentData.bdrTeam, currentData.pmTeam);
-    renderTeams(currentData.bdrTeam, currentData.pmTeam);
+    renderSummary(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
+    renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
   } catch(e) {
     console.error('Load error:', e);
     if (FALLBACK_DATA[gid]) {
       currentData = FALLBACK_DATA[gid];
-      renderSummary(currentData.bdrTeam, currentData.pmTeam);
-      renderTeams(currentData.bdrTeam, currentData.pmTeam);
+      renderSummary(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
+      renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
       setLiveStatus(false);
     } else { eb.classList.add('show'); }
   }
@@ -750,8 +778,8 @@ async function refreshData() {
     const raw = await fetchTabData(gid);
     const data = parseSheetData(raw);
     if (data.bdrTeam.length > 0 || data.pmTeam.length > 0) { currentData = data; setLiveStatus(true); }
-    renderSummary(currentData.bdrTeam, currentData.pmTeam);
-    renderTeams(currentData.bdrTeam, currentData.pmTeam);
+    renderSummary(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
+    renderTeams(currentData.bdrTeam, currentData.pmTeam, currentData.fieldTeam);
   } catch(e) { console.log('Refresh failed:', e.message); }
   setTimeout(() => btn.classList.remove('spinning'), 600);
 }
