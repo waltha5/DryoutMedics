@@ -9,7 +9,7 @@
 :root {
   --bg: #0f0f1a; --card: #1a1a2e; --card-hover: #22223a
   --gold: #ffd700; --silver: #c0c0c0; --bronze: #cd7f32;
-  --accent1: #ff6b6b; --accent2: #6bfb8; --accent3: #6bb5ff; --accent4: #ff6bef;
+  --accent1: #ff6b6b; --accent2: #6bffb8; --accent3: #6bb5ff; --accent4: #ff6bef;
   --gradient1: linear-gradient(135deg, #ff6b6b, #ff8e53);
   --gradient2: linear-gradient(135deg, #6bffb8, #00d4aa);
   --gradient3: linear-gradient(135deg, #6bb5ff, #536dfe);
@@ -57,10 +57,11 @@ body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%;
 .team-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 .team-panel.bdr::before { background: var(--gradient1); }
 .team-panel.pm::before { background: var(--gradient2); }
+      .team-panel.field::before { background: var(--gradient3); }
 .team-panel .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .panel-header h2 { font-size: 1.2rem; font-weight: 800; }
 .panel-header .ranking-note { font-size: 0.72rem; color: var(--text-dim); font-style: italic; }
-.leader-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.leader-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }    
 .leader-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid transparent; transition: all 0.2s; position: relative; overflow: hidden; }
 .leader-row:hover { background: rgba(255,255,255,0.05); border-color: var(--border); }
 .leader-row.rank-1 { border-color: rgba(255,215,0,0.25); background: rgba(255,215,0,0.06); }
