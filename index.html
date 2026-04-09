@@ -722,9 +722,9 @@ function setLiveStatus(live) {
 
 // âââââââââââââââââââââââââââââââ FALLBACK DATA âââââââââââââââââââââââââââââââ
 const FALLBACK_TABS = [
+  { gid: '691858394', name: 'April 26' },
   { gid: '1381274882', name: 'March 26' },
   { gid: '499280765', name: 'February 26' },
-  { gid: '691858394', name: 'April 26' },
   { gid: '1151265052', name: 'December 25' },
   { gid: '1344481906', name: 'November 25' },
   { gid: '0', name: 'October Sales Leaderboard' },
@@ -748,7 +748,7 @@ async function init(skipLoading) {
     if (tabs && tabs.length > 0) {
       sheetTabs = tabs.filter(t => { const n = t.name.toLowerCase(); return n.includes('leaderboard') || n.includes('sales') || FALLBACK_TABS.some(ft => ft.name.toLowerCase() === n); });
       if (sheetTabs.length === 0) sheetTabs = tabs;
-      if (!sheetTabs.find(t => t.gid === '691858394')) sheetTabs.unshift({ gid: '691858394', name: 'April 26' });
+      sheetTabs = sheetTabs.filter(t => t.gid !== '691858394'); sheetTabs.unshift({ gid: '691858394', name: 'April 26' });
       setLiveStatus(true);
     } else throw new Error('No tabs');
   } catch(e) {
