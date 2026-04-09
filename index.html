@@ -457,7 +457,7 @@ function toggleCard(id) {
 function makeSummaryCard(id, value, label, color, delay) {
   const hidden = hiddenCards.has(id);
   return `<div class="summary-card animate-in${hidden ? ' hidden-card' : ''}" style="animation-delay:${delay}s" data-card-id="${id}">
-    <button class="toggle-eye" onclick="toggleCard('${id}')" title="${hidden ? 'Show' : 'Hide'} ${label}">${hidden ? 'ðï¸' : 'ð'}</button>
+    <button class="toggle-eye" onclick="toggleCard('${id}')" title="${hidden ? 'Show' : 'Hide'} ${label}">${hidden ? '&#x1F441;ï¸' : '&#x1F648;'}</button>
     <div class="value" style="color:${color}">${value}</div>
     <div class="label">${label}</div>
   </div>`;
@@ -483,8 +483,8 @@ function leaderRow(m, i, type, maxVal, isHouse) {
   const rc = !isHouse && rank <= 3 ? `rank-${rank}` : '';
   const houseClass = isHouse ? ' house-account' : '';
   const rankLabel = isHouse
-    ? '<span class="rank-num" style="font-size:1.1em;">ð </span>'
-    : `<span class="rank-num">${rank===1?'<span class="trophy">ð</span>':rank===2?'<span class="trophy">ð¥</span>':rank===3?'<span class="trophy">ð¥</span>':'#'+rank}</span>`;
+    ? '<span class="rank-num" style="font-size:1.1em;">&#x1F3E0;</span>'
+    : `<span class="rank-num">${rank===1?'<span class="trophy">&#x1F947;</span>':rank===2?'<span class="trophy">&#x1F948;</span>':rank===3?'<span class="trophy">&#x1F949;</span>':'#'+rank}</span>`;
   const pk = photoKey(m.name);
   const hasP = photoStore[pk];
   const aStyle = hasP ? `background-image:url('${photoStore[pk]}');background-size:cover;` : `background:${getColor(m.name)};`;
@@ -812,7 +812,7 @@ init();
      Insert this block right before </body>
      ============================================================ -->
 
-<!-- Fixed ð trigger button (bottom-right) -->
+<!-- Fixed &#x1F50A; trigger button (bottom-right) -->
 <button id="celebBtn" onclick="openCelebPanel()" title="Celebration sounds" style="
   position:fixed; bottom:24px; right:24px; z-index:3000;
   width:52px; height:52px; border-radius:50%;
@@ -821,7 +821,7 @@ init();
   box-shadow:0 4px 20px rgba(155,89,182,0.5);
   transition:transform 0.2s, box-shadow 0.2s;
   display:flex; align-items:center; justify-content:center;
-" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">ð</button>
+" onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">&#x1F50A;</button>
 
 <!-- Sound picker panel -->
 <div id="celebPanel" style="
@@ -832,7 +832,7 @@ init();
   font-family:'Inter',-apple-system,sans-serif;
 ">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-weight:800;color:#f0f0f0;font-size:1rem;">ð¶ Choose a Sound</span>
+    <span style="font-weight:800;color:#f0f0f0;font-size:1rem;">&#x1F3B6; Choose a Sound</span>
     <button onclick="closeCelebPanel()" style="background:none;border:none;color:#8888aa;font-size:1.2rem;cursor:pointer;line-height:1;">â</button>
   </div>
   <div id="soundList" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -841,7 +841,7 @@ init();
       width:100%;background:linear-gradient(135deg,#9b59b6,#6c3483);
       border:none;color:#fff;padding:10px;border-radius:10px;
       font-size:0.9rem;font-weight:700;cursor:pointer;
-    ">ð Test Celebration</button>
+    ">&#x1F389; Test Celebration</button>
   </div>
 </div>
 
@@ -883,11 +883,11 @@ init();
 (function(){
   // âââ Sound definitions (Web Audio API â no external files needed) âââââââ
   const SOUNDS = [
-    { id:'fanfare',   emoji:'ðº', label:'Fanfare',       fn: playFanfare   },
-    { id:'cash',      emoji:'ð°', label:'Cash Register', fn: playCash      },
-    { id:'party',     emoji:'ð', label:'Party Poppers', fn: playParty     },
-    { id:'bell',      emoji:'ð', label:'Victory Bell',  fn: playBell      },
-    { id:'airhorn',   emoji:'ð¯', label:'Air Horn',      fn: playAirhorn   },
+    { id:'fanfare',   emoji:'&#x1F3BA;', label:'Fanfare',       fn: playFanfare   },
+    { id:'cash',      emoji:'&#x1F4B0;', label:'Cash Register', fn: playCash      },
+    { id:'party',     emoji:'&#x1F389;', label:'Party Poppers', fn: playParty     },
+    { id:'bell',      emoji:'&#x1F514;', label:'Victory Bell',  fn: playBell      },
+    { id:'airhorn',   emoji:'&#x1F4EF;', label:'Air Horn',      fn: playAirhorn   },
   ];
 
   let selectedSound = 'fanfare';
@@ -1034,8 +1034,8 @@ init();
     const banner = document.getElementById('winnerBanner');
     const txt = document.getElementById('winnerText');
     txt.innerHTML = name
-      ? `ð DEAL CLOSED!<br><span style="font-size:1.3rem;opacity:0.9;">${name}</span>`
-      : 'ð DEAL CLOSED!';
+      ? `&#x1F3C6; DEAL CLOSED!<br><span style="font-size:1.3rem;opacity:0.9;">${name}</span>`
+      : '&#x1F3C6; DEAL CLOSED!';
     banner.style.display = 'flex';
     setTimeout(() => { banner.style.display = 'none'; }, 3500);
   }
@@ -1090,7 +1090,7 @@ init();
 
   window.testCelebration = function() {
     closeCelebPanel();
-    celebrate('Test Winner ð');
+    celebrate('Test Winner &#x1F389;');
   };
 
   // âââ Auto-detect deal increases on leaderboard refresh âââââââââââââââââââ
